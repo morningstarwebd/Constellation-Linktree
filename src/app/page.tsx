@@ -141,7 +141,7 @@ export default function Home() {
         }}
       >
         <img
-          src="/assets/silhouette.png"
+          src="/assets/person-silhouette.webp"
           alt="Person looking up at the stars"
           className="w-full h-auto"
           style={{ display: 'block' }}

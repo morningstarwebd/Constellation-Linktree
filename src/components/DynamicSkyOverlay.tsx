@@ -138,7 +138,7 @@ export default function DynamicSkyOverlay({ onLoad }: { onLoad?: () => void }) {
 
         // Load the background image as a WebGL texture
         const textureLoader = new THREE.TextureLoader();
-        const bgTexture = textureLoader.load('/assets/stars_bg.jpg', () => {
+        const bgTexture = textureLoader.load('/assets/galaxy-background.webp', () => {
             // Called when texture is fully loaded
             if (onLoad) onLoad();
         });
