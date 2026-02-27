@@ -47,6 +47,38 @@ body {
   }
 }
 
+/* ── 3D Constellation Opening: Staggered link reveal ── */
+@keyframes linkSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Content panel fade-in after zoom ── */
+@keyframes contentReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* ── Title shimmer ── */
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 12px rgba(100, 160, 255, 0.6); }
+  50% { text-shadow: 0 0 24px rgba(130, 180, 255, 0.9), 0 0 48px rgba(80, 140, 255, 0.3); }
+}
+
 /* ── Icon Bubble tooltip ── */
 .icon-bubble {
   position: relative;

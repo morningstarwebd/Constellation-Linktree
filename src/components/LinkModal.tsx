@@ -6,15 +6,16 @@ import { ConstellationData } from '@/types';
 interface Props {
     constellation: ConstellationData | null;
     onClose: () => void;
+    showContent: boolean;
 }
 
-export default function LinkModal({ constellation, onClose }: Props) {
+export default function LinkModal({ constellation, onClose, showContent }: Props) {
     const modalRef = useRef<HTMLDivElement>(null);
     const firstFocusRef = useRef<HTMLButtonElement>(null);
 
     // Focus trap & Escape key
     useEffect(() => {
-        if (!constellation) return;
+        if (!constellation || !showContent) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -41,12 +42,9 @@ export default function LinkModal({ constellation, onClose }: Props) {
         };
 
         document.addEventListener('keydown', handleKeyDown);
-
-        // Auto-focus the close button
         setTimeout(() => firstFocusRef.current?.focus(), 100);
-
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [constellation, onClose]);
+    }, [constellation, onClose, showContent]);
 
     if (!constellation) return null;
 
@@ -57,115 +55,147 @@ export default function LinkModal({ constellation, onClose }: Props) {
             className="fixed inset-0 flex items-center justify-center"
             style={{
                 zIndex: 50,
-                background: 'rgba(0, 5, 20, 0.70)',
-                backdropFilter: 'blur(6px)',
+                // Semi-transparent overlay that lets the zoomed galaxy show through
+                background: showContent
+                    ? 'radial-gradient(ellipse at center, rgba(0,5,20,0.4) 0%, rgba(0,5,20,0.75) 100%)'
+                    : 'transparent',
+                transition: 'background 0.5s ease',
+                pointerEvents: showContent ? 'auto' : 'none',
             }}
             onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
+                if (e.target === e.currentTarget && showContent) onClose();
             }}
             role="dialog"
             aria-modal="true"
             aria-label={constellation.label}
         >
-            <div
-                ref={modalRef}
-                style={{
-                    background: 'rgba(5, 10, 40, 0.95)',
-                    border: '1px solid rgba(100, 160, 255, 0.40)',
-                    borderRadius: '16px',
-                    padding: '32px',
-                    maxWidth: '380px',
-                    width: '90%',
-                    boxShadow: '0 0 60px rgba(80, 140, 255, 0.25)',
-                    animation: 'modalIn 0.3s ease forwards',
-                }}
-            >
-                {/* Close button */}
-                <button
-                    ref={firstFocusRef}
-                    onClick={onClose}
-                    aria-label="Close modal"
+            {showContent && (
+                <div
+                    ref={modalRef}
                     style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '16px',
-                        background: 'none',
-                        border: 'none',
-                        color: 'rgba(150, 180, 255, 0.7)',
-                        fontSize: '24px',
-                        cursor: 'pointer',
-                        lineHeight: 1,
-                        transition: 'color 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#ffffff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'rgba(150, 180, 255, 0.7)';
+                        animation: 'contentReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        maxWidth: '420px',
+                        width: '92%',
                     }}
                 >
-                    ×
-                </button>
+                    {/* Close button — floating in top-right corner */}
+                    <button
+                        ref={firstFocusRef}
+                        onClick={onClose}
+                        aria-label="Close modal"
+                        style={{
+                            position: 'absolute',
+                            top: '-40px',
+                            right: '0px',
+                            background: 'rgba(10, 20, 60, 0.6)',
+                            border: '1px solid rgba(100, 160, 255, 0.3)',
+                            color: 'rgba(180, 210, 255, 0.85)',
+                            fontSize: '16px',
+                            cursor: 'pointer',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.25s ease',
+                            backdropFilter: 'blur(8px)',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(40, 80, 180, 0.6)';
+                            e.currentTarget.style.borderColor = 'rgba(150, 200, 255, 0.6)';
+                            e.currentTarget.style.color = '#ffffff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(10, 20, 60, 0.6)';
+                            e.currentTarget.style.borderColor = 'rgba(100, 160, 255, 0.3)';
+                            e.currentTarget.style.color = 'rgba(180, 210, 255, 0.85)';
+                        }}
+                    >
+                        ✕
+                    </button>
 
-                {/* Title */}
-                <h2
-                    style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: '18px',
-                        color: 'rgba(200, 225, 255, 0.95)',
-                        textShadow: '0 0 12px rgba(100, 160, 255, 0.6)',
-                        letterSpacing: '0.12em',
-                        textAlign: 'center',
-                        marginBottom: '24px',
-                    }}
-                >
-                    {constellation.label}
-                </h2>
+                    {/* Title */}
+                    <h2
+                        style={{
+                            fontFamily: "'Cinzel', serif",
+                            fontSize: '20px',
+                            color: 'rgba(210, 230, 255, 0.95)',
+                            textShadow: '0 0 16px rgba(100, 160, 255, 0.7)',
+                            letterSpacing: '0.14em',
+                            textAlign: 'center',
+                            marginBottom: '28px',
+                            animation: 'titleGlow 3s ease-in-out infinite',
+                        }}
+                    >
+                        {constellation.label}
+                    </h2>
 
-                {/* Link list */}
-                <div className="flex flex-col gap-3">
-                    {linksToShow.map((link) => (
-                        <a
-                            key={link.id}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 no-underline"
-                            style={{
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                background: 'rgba(20, 40, 100, 0.5)',
-                                border: '1px solid rgba(100, 160, 255, 0.3)',
-                                color: 'rgba(190, 215, 255, 0.9)',
-                                fontSize: '14px',
-                                transition: 'all 0.2s ease',
-                                textDecoration: 'none',
-                            }}
-                            onMouseEnter={(e) => {
-                                const el = e.currentTarget;
-                                el.style.background = 'rgba(40, 80, 180, 0.6)';
-                                el.style.borderColor = 'rgba(150, 200, 255, 0.6)';
-                            }}
-                            onMouseLeave={(e) => {
-                                const el = e.currentTarget;
-                                el.style.background = 'rgba(20, 40, 100, 0.5)';
-                                el.style.borderColor = 'rgba(100, 160, 255, 0.3)';
-                            }}
-                        >
-                            {/* Small icon */}
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="rgba(150, 200, 255, 0.8)"
+                    {/* Link list — staggered entry */}
+                    <div className="flex flex-col gap-3">
+                        {linksToShow.map((link, index) => (
+                            <a
+                                key={link.id}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 no-underline"
+                                style={{
+                                    padding: '14px 20px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(8, 18, 60, 0.65)',
+                                    border: '1px solid rgba(100, 160, 255, 0.25)',
+                                    color: 'rgba(200, 225, 255, 0.95)',
+                                    fontSize: '15px',
+                                    textDecoration: 'none',
+                                    backdropFilter: 'blur(12px)',
+                                    boxShadow: '0 4px 24px rgba(0, 10, 40, 0.5), inset 0 1px 0 rgba(100, 160, 255, 0.1)',
+                                    animation: `linkSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.08 + 0.15}s forwards`,
+                                    opacity: 0,
+                                    transition: 'all 0.25s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    const el = e.currentTarget;
+                                    el.style.background = 'rgba(25, 50, 120, 0.7)';
+                                    el.style.borderColor = 'rgba(150, 200, 255, 0.5)';
+                                    el.style.transform = 'translateY(-2px) scale(1.02)';
+                                    el.style.boxShadow = '0 8px 32px rgba(60, 120, 255, 0.3), inset 0 1px 0 rgba(150, 200, 255, 0.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    const el = e.currentTarget;
+                                    el.style.background = 'rgba(8, 18, 60, 0.65)';
+                                    el.style.borderColor = 'rgba(100, 160, 255, 0.25)';
+                                    el.style.transform = 'translateY(0) scale(1)';
+                                    el.style.boxShadow = '0 4px 24px rgba(0, 10, 40, 0.5), inset 0 1px 0 rgba(100, 160, 255, 0.1)';
+                                }}
                             >
-                                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-                            </svg>
-                            <span>{link.label}</span>
-                        </a>
-                    ))}
+                                {/* Small star icon */}
+                                <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="rgba(150, 200, 255, 0.8)"
+                                >
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                <span style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 400 }}>
+                                    {link.label}
+                                </span>
+                                {/* External link arrow */}
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="rgba(120, 170, 255, 0.5)"
+                                    style={{ marginLeft: 'auto' }}
+                                >
+                                    <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zm-2 16H5V7h7V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h-2v7H9z" />
+                                </svg>
+                            </a>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

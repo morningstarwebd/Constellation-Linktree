@@ -98,10 +98,10 @@ function getIcon(name: IconName): React.ReactNode {
 
 export default function IconBubble({ link, onOpenModal }: Props) {
     const handleClick = () => {
-        if (link.openModal && onOpenModal) {
+        // Always open the constellation modal with the zoom animation
+        // Individual links are accessible from within the modal
+        if (onOpenModal) {
             onOpenModal();
-        } else {
-            window.open(link.url, '_blank', 'noopener,noreferrer');
         }
     };
 
